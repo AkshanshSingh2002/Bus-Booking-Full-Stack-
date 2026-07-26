@@ -3,6 +3,7 @@ import busRoute from './routes/bus.router.js';
 import seatRoute from './routes/seat.router.js';
 import authRoute from './routes/auth.router.js';
 import roleRoute from './routes/role.router.js';
+import bookingRouter from './routes/booking.router.js';
 // import { cors } from 'cors'; 
 // import { helmet } from 'helmet';
 // import morgan from 'morgan';
@@ -24,6 +25,7 @@ app.use("/api/buses", busRoute);
 app.use("/api/seats", seatRoute);
 app.use("/api/auth", authRoute);
 app.use("/api/role", roleRoute);
+app.use("/api/booking", bookingRouter);
 
 
 // Routes

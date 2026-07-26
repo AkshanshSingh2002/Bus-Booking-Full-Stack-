@@ -22,13 +22,17 @@ export const addBookingRecordService = async (data) => {
     const bus = await Bus.findByPk(busId);
 
     if (!bus) {
-        throw new Error("Error in bus booking. Please try again.")
+        throw new Error("Bus not found")
+    }
+
+    if (seat.busId !== busId) {
+        throw new Error("Seat not found");
     }
 
     const user = await User.findByPk(userId);
 
     if (!user) {
-        throw new Error("Error in user booking. Please try again.")
+        throw new Error("User not found")
     }
 
     const booking = await BookingRecord.create({
@@ -76,10 +80,29 @@ export const getAllBookingRecordService = async () => {
     return await BookingRecord.findAll();
 };
 
-export const deleteBookingRecordByIdService = async (id) => {
-    return await BookingRecord.destroy({
-        where: {
-            id
+export const deleteBookingRecordByBookingIdService = async (id) => {
+    // return await BookingRecord.destroy({
+    //     where: {
+    //         id
+    //     }
+    // });
+
+    const booking = await BookingRecord.findByPk(id);
+
+    if (!booking) {
+        throw new Error("Booking not found");
+    }
+
+    await Seat.update(
+        { isBooked: false },
+        {
+            where: {
+                seatId: booking.seatId
+            }
         }
-    });
+    );
+
+    await booking.destroy();
+
+    return booking;
 };
