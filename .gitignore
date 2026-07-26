@@ -1,0 +1,23 @@
+# Backend dependencies
+/backend/node_modules/
+
+# Environment variables
+/backend/.env
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/
+
+# Coverage
+coverage/
+
+# Build output (if applicable)
+dist/
+build/
