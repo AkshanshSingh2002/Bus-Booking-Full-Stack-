@@ -34,18 +34,15 @@ const BookingRecord = sequelize.define(
     },
     userName: {
         type: DataTypes.STRING,
-        allowNull: false,
-        unique: true
+        allowNull: false
     },
     userEmail: {
         type: DataTypes.STRING,
-        allowNull: false,
-        unique: true
+        allowNull: false
     },
     userMobileNumber: {
         type: DataTypes.STRING,
-        allowNull: false,
-        unique: true
+        allowNull: false
     },
     busId: {
         type: DataTypes.BIGINT,

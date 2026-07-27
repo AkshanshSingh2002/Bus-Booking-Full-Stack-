@@ -3,6 +3,7 @@ import {
     getBookingRecordByIdService,
     getBookingRecordByBusIdService,
     getAllBookingRecordService,
+    getBookingRecordByUserIdService,
     deleteBookingRecordByBookingIdService
 
 } from "../services/booking.service.js";
@@ -18,6 +19,9 @@ export const addBookingRecord = async (req, res) => {
         });
 
     } catch (error) {
+        console.log(error);
+        console.log(JSON.stringify(error, null, 2));
+
         res.status(500).json({
             success: false,
             message: error.message
@@ -41,13 +45,14 @@ export const getBookingRecordById = async (req, res) => {
             data: bookings,
         });
     } catch (error) {
+        console.log(error);
         res.status(500).json({
             success: false,
             message: error.message,
         });
     }
 };
-// fafs
+
 export const getBookingRecordByBusId = async (req, res) => {
     try {
         const bookings = await getBookingRecordByBusIdService(req.params.busId);
@@ -64,6 +69,31 @@ export const getBookingRecordByBusId = async (req, res) => {
             data: bookings,
         });
     } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+};
+
+export const getBookingRecordByUserId = async (req, res) => {
+    try {
+        const bookings = await getBookingRecordByUserIdService(req.params.userId);
+
+        if (!bookings || bookings.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: bookings,
+        });
+    } catch (error) {
+        console.log(error);
         res.status(500).json({
             success: false,
             message: error.message,
@@ -80,6 +110,7 @@ export const getAllBookingRecord = async (req, res) => {
             data: bookings,
         });
     } catch (error) {
+        console.log(error);
         res.status(500).json({
             success: false,
             message: error.message,
@@ -96,6 +127,7 @@ export const deleteBookingRecordByBookingId = async (req, res) => {
             data: deletedBooking
         })
     } catch (error) {
+        console.log(error);
         res.status(500).json({
             success: false,
             message: error.message,

@@ -25,7 +25,10 @@ export const addBookingRecordService = async (data) => {
         throw new Error("Bus not found")
     }
 
-    if (seat.busId !== busId) {
+    // if (seat.busId !== busId) {
+    //     throw new Error("Seat not found");
+    // }
+    if (Number(seat.busId) !== Number(busId)) {
         throw new Error("Seat not found");
     }
 
@@ -79,6 +82,33 @@ export const getBookingRecordByBusIdService = async (id) => {
 export const getAllBookingRecordService = async () => {
     return await BookingRecord.findAll();
 };
+
+// Option 1: Return all booking records for that user (your current code)
+export const getBookingRecordByUserIdService = async (id) => {
+    return await BookingRecord.findAll({
+        where: {
+            userId: id
+        }
+    });
+
+};
+
+// Option 2: Return only seat information booked by that user
+// export const getBookingRecordByUserIdService = async (id) => {
+//     return await BookingRecord.findAll({
+//         where: {
+//             userId: id
+//         },
+//         attributes: [
+//             "seatId",
+//             "seatNumber",
+//             "seatType",
+//             "busId",
+//             "busName",
+//             "bookingId"
+//         ]
+//     });
+// };
 
 export const deleteBookingRecordByBookingIdService = async (id) => {
     // return await BookingRecord.destroy({
