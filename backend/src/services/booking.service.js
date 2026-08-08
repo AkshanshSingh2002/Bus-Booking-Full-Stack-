@@ -71,6 +71,14 @@ export const getBookingRecordByBusIdService = async (id) => {
     });
 };
 
+export const getBookingRecordByBusNameService = async (name) => {
+    return await BookingRecord.findAll({
+        where: {
+            busName: name
+        }
+    });
+};
+
 // export const updateBookingRecordService = async (id, data) => {
 //     await BookingRecord.update(data, {
 //         where: { id }

@@ -2,6 +2,7 @@ import {
     addBookingRecordService,
     getBookingRecordByIdService,
     getBookingRecordByBusIdService,
+    getBookingRecordByBusNameService,
     getAllBookingRecordService,
     getBookingRecordByUserIdService,
     deleteBookingRecordByBookingIdService
@@ -61,6 +62,30 @@ export const getBookingRecordByBusId = async (req, res) => {
             return res.status(404).json({
                 success: false,
                 message: "Bookinga not found",
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: bookings,
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+};
+
+export const getBookingRecordByBusName = async (req, res) => {
+    try {
+        const bookings = await getBookingRecordByBusNameService(req.params.busName);
+
+        if (!bookings || bookings.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Bus not found",
             });
         }
 
