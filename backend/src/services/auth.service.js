@@ -3,6 +3,7 @@ import User from "../models/user.js";
 import Role from "../models/role.js"
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import redis from "../config/redis.js"
 import { where } from "sequelize";
 
 dotenv.config();
@@ -42,7 +43,17 @@ export const registerService = async (data) => {
     //         }
     //     }
     // });
-    await user.addRole(role);
+    const userRole = await user.addRole(role);
+
+    const userCache = {
+        userId: user.userId,
+        userName: user.userName,
+        userEmail: user.userEmail,
+        userMobileNumber: user.userMobileNumber,
+        userRole: userRole
+    };  
+
+    await redis.set(`user:${user.userId}`, JSON.stringify(userCache), "EX", 300);
 
     return user;
 };
