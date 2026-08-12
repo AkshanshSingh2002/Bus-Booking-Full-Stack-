@@ -4,7 +4,7 @@ import Role from "../models/role.js"
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import redis from "../config/redis.js"
-import { where } from "sequelize";
+import { Model, where } from "sequelize";
 
 dotenv.config();
 
@@ -92,5 +92,35 @@ export const userLoginService = async (data) => {
     )
 
     return token;
+};
+
+export const getUserByIdService = async (userId) => {
+
+    const cacheUser = await redis.get(`user:${userId}`);
+
+    if (cacheUser) {
+        return JSON.parse(cacheUser);
+    }
+
+    const user = await User.findByPk(userId, {
+        include: {
+            model: Role,
+            as: "roles",
+            attributes: ["roleName"]
+        }
+    });
+
+    if (!user) {
+        throw new Error("User not found! Please check user ID");
+    }
+
+    await redis.set(
+        `user:${userId}`,
+        JSON.stringify(user),
+        "EX",
+        120
+    );
+
+    return user;
 };
 

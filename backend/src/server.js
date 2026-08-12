@@ -18,8 +18,8 @@ async function startDB() {
         await sequelize.authenticate();
         console.log("Connectedt to the Database");
 
-        // await sequelize.sync({ alter: true });   
-        await sequelize.sync();
+        await sequelize.sync({ alter: true });   
+        // await sequelize.sync();
         // await sequelize.sync({ force: true });
         console.log("Tables Synced");
     } catch (error) {
