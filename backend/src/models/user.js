@@ -1,44 +1,12 @@
-import sequelize from "../config/database.js";
 import { DataTypes } from "sequelize";
+import sequelize from "../config/database.js";
 
 const User = sequelize.define("User", {
-    userId: {
-        type: DataTypes.BIGINT,
-        primaryKey: true,
-        autoIncrement: true,
-        allowNull: false
-    },
-    userName: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        unique: true
-    },
-    userEmail: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        unique: true
-    },
-    userPassword: {
-        type: DataTypes.STRING,
-        allowNull: false
-    },
-    userMobileNumber: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        unique: true
-    },
-    // role: {
-    //     type: DataTypes.ENUM(
-    //         "USER"
-    //     ),
-    //     allowNull: false,
-    // }
-},
-{
-    tableName : "users",
-    timestamps: true,
-    underscored: true
-}
-);
+    userId: { type: DataTypes.BIGINT, primaryKey: true, autoIncrement: true, allowNull: false },
+    userName: { type: DataTypes.STRING(100), allowNull: false, unique: true },
+    userEmail: { type: DataTypes.STRING(255), allowNull: false, unique: true },
+    userPassword: { type: DataTypes.STRING(255), allowNull: false },
+    userMobileNumber: { type: DataTypes.STRING(20), allowNull: false, unique: true }
+}, { tableName: "users" });
 
 export default User;

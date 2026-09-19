@@ -1,126 +1,48 @@
-import dotenv from "dotenv";
-import User from "../models/user.js";
-import Role from "../models/role.js"
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import redis from "../config/redis.js"
-import { Model, where } from "sequelize";
+import { User, Role } from "../models/index.js";
+import redis from "../config/redis.js";
+import { badRequest, conflict, notFound, unauthorized } from "../utils/appError.js";
 
-dotenv.config();
+const publicUser = (user) => ({
+    userId: user.userId,
+    userName: user.userName,
+    userEmail: user.userEmail,
+    userMobileNumber: user.userMobileNumber,
+    roles: user.roles?.map((role) => role.roleName) || []
+});
 
-export const registerService = async (data) => {
-    const existingUser = await User.findOne({
-        where: {
-            userName: data.userName
-        }
-    });
+export const registerService = async ({ userName, userEmail, userPassword, userMobileNumber }) => {
+    if (!userName || !userEmail || !userPassword || !userMobileNumber) throw badRequest("All registration fields are required");
+    const existing = await User.findOne({ where: { userName } });
+    const existingEmail = await User.findOne({ where: { userEmail } });
+    if (existing || existingEmail) throw conflict("Username or email already exists");
 
-    if (existingUser) {
-        throw new Error("User Already Exists");
-    }
+    const role = await Role.findOne({ where: { roleName: "USER" } });
+    if (!role) throw new Error("USER role is not configured");
 
-    const hashedPassword = await bcrypt.hash(data.userPassword, 10);
-
-    const user = await User.create({
-        userName: data.userName,
-        userEmail: data.userEmail,
-        userPassword: hashedPassword,
-        userMobileNumber: data.userMobileNumber
-    });
-
-    const role = await Role.findOne({
-        where: {
-            roleName: "USER"
-        }
-    });
-
-    //     import { Op } from "sequelize";
-
-    // const roles = await Role.findAll({
-    //     where: {
-    //         roleName: {
-    //             [Op.in]: ["USER", "MANAGER"]
-    //         }
-    //     }
-    // });
-    const userRole = await user.addRole(role);
-
-    const userCache = {
-        userId: user.userId,
-        userName: user.userName,
-        userEmail: user.userEmail,
-        userMobileNumber: user.userMobileNumber,
-        userRole: userRole
-    };  
-
-    await redis.set(`user:${user.userId}`, JSON.stringify(userCache), "EX", 300);
-
-    return user;
+    const user = await User.create({ userName, userEmail, userPassword: await bcrypt.hash(userPassword, 12), userMobileNumber });
+    await user.addRole(role);
+    await redis.del(`user:${user.userId}`);
+    return publicUser({ ...user.toJSON(), roles: [role] });
 };
 
-export const userLoginService = async (data) => {
+export const userLoginService = async ({ userName, userPassword }) => {
+    const user = await User.findOne({ where: { userName }, include: [{ model: Role, as: "roles", attributes: ["roleName"] }] });
+    if (!user || !(await bcrypt.compare(userPassword || "", user?.userPassword || ""))) throw unauthorized("Invalid username or password");
+    if (!process.env.JWT_SECRET) throw new Error("JWT_SECRET is not configured");
 
-    const user = await User.findOne({
-        where: {
-            userName: data.userName
-        }
-    });
-
-    if (!user) {
-        throw new Error("Invalid UserName");
-    }
-
-    const isPassword = await bcrypt.compare(
-        data.userPassword,
-        user.userPassword
-    )
-
-    if (!isPassword) {
-        throw new Error('Invalid password');
-    }
-
-    const token = jwt.sign(
-        {
-            id: user.id,
-            userName: user.userName,
-            role: user.role
-        },
-        process.env.JWT_SECRET,
-        {
-            expiresIn: process.env.JWT_EXPIRES_IN
-        }
-    )
-
-    return token;
+    const roles = user.roles.map((role) => role.roleName);
+    const token = jwt.sign({ userId: user.userId, userName: user.userName, roles }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || "15m" });
+    return { token, user: publicUser(user) };
 };
 
 export const getUserByIdService = async (userId) => {
-
-    const cacheUser = await redis.get(`user:${userId}`);
-
-    if (cacheUser) {
-        return JSON.parse(cacheUser);
-    }
-
-    const user = await User.findByPk(userId, {
-        include: {
-            model: Role,
-            as: "roles",
-            attributes: ["roleName"]
-        }
-    });
-
-    if (!user) {
-        throw new Error("User not found! Please check user ID");
-    }
-
-    await redis.set(
-        `user:${userId}`,
-        JSON.stringify(user),
-        "EX",
-        120
-    );
-
-    return user;
+    const cache = await redis.get(`user:${userId}`);
+    if (cache) return JSON.parse(cache);
+    const user = await User.findByPk(userId, { attributes: { exclude: ["userPassword"] }, include: [{ model: Role, as: "roles", attributes: ["roleName"] }] });
+    if (!user) throw notFound("User not found");
+    const data = publicUser(user);
+    await redis.set(`user:${userId}`, JSON.stringify(data), "EX", 300);
+    return data;
 };
-

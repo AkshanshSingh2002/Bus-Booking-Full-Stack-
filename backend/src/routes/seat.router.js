@@ -1,15 +1,13 @@
 import express from "express";
 import { addSeat, getSeatById, getSeatByBusId, getAllSeats, deleteSeatById } from "../controllers/seat.controller.js";
+import { authenticate } from "../middlewares/auth.middleware.js";
+import { requireRole } from "../middlewares/role.middleware.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 
-const seatRouter = express.Router();
-
-seatRouter.post("/addSeat", addSeat);
-seatRouter.get("/getAllSeats", getAllSeats);
-seatRouter.get("/getSeatById/:id", getSeatById);
-seatRouter.get("/getSeatByBusId/:id", getSeatByBusId);
-seatRouter.delete("/deleteSeatById/:id", deleteSeatById);
-
-
-
-
-export default seatRouter;
+const router = express.Router();
+router.get("/getAllSeats", asyncHandler(getAllSeats));
+router.get("/getSeatById/:id", asyncHandler(getSeatById));
+router.get("/getSeatByBusId/:id", asyncHandler(getSeatByBusId));
+router.post("/addSeat", authenticate, requireRole("ADMIN"), asyncHandler(addSeat));
+router.delete("/deleteSeatById/:id", authenticate, requireRole("ADMIN"), asyncHandler(deleteSeatById));
+export default router;

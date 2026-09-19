@@ -1,45 +1,18 @@
-import { where } from "sequelize";
-import Role from "../models/role.js";
-import User from "../models/user.js";
+import { Role, User } from "../models/index.js";
+import { conflict, notFound } from "../utils/appError.js";
 
 export const addRoleService = async (roleName) => {
-    const existingRole = await Role.findOne({
-        where: {
-            roleName: roleName
-        }
-    });
-
-    if (existingRole) {
-        throw new Error("Role already exists");
-    }
-
-    const role = await Role.create({
-        roleName: roleName
-    });
-
-    return role
+    const normalized = String(roleName || "").trim().toUpperCase();
+    if (!normalized) throw new Error("Role name is required");
+    if (await Role.findOne({ where: { roleName: normalized } })) throw conflict("Role already exists");
+    return Role.create({ roleName: normalized });
 };
 
-export const changeRoleByIdService = async (data) => {
-    const user = await User.findByPk(data.userId);
-
-    if (!user) {
-        throw new Error("User not found");
-    }
-
-    const previousRoles = await user.getRoles();
-
-    const newRole = await Role.findOne({
-        where: {
-            roleName: data.roleName
-        }
-    });
-
-    if (!newRole) {
-        throw new Error("Role not found");
-    }
-
-    await user.setRoles(newRole);
-
-    return "Role Successfully changed";
+export const changeRoleByIdService = async ({ userId, roleName }) => {
+    const user = await User.findByPk(userId);
+    if (!user) throw notFound("User not found");
+    const role = await Role.findOne({ where: { roleName: String(roleName).toUpperCase() } });
+    if (!role) throw notFound("Role not found");
+    await user.setRoles([role]);
+    return { message: "Role successfully changed" };
 };

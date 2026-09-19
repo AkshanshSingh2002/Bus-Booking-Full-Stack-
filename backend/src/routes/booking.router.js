@@ -1,25 +1,15 @@
-import express from 'express'; 
-import {
-    addBookingRecord,
-    getBookingRecordById,
-    getBookingRecordByBusId,
-    getBookingRecordByBusName,
-    getAllBookingRecord,
-    getBookingRecordByUserId,
-    deleteBookingRecordByBookingId
-} from '../controllers/booking.controller.js';
+import express from "express";
+import { addBookingRecord, getBookingRecordById, getBookingRecordByBusId, getBookingRecordByBusName, getAllBookingRecord, getBookingRecordByUserId, deleteBookingRecordByBookingId } from "../controllers/booking.controller.js";
+import { authenticate } from "../middlewares/auth.middleware.js";
+import { requireRole } from "../middlewares/role.middleware.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 
-const bookingRouter = express.Router();
-
-bookingRouter.post("/addBookingRecord", addBookingRecord);
-bookingRouter.get("/getAllBookingRecord", getAllBookingRecord);
-bookingRouter.get("/getBookingRecordByBusId/:busId", getBookingRecordByBusId);
-bookingRouter.get("/getBookingRecordByBusName/:busName", getBookingRecordByBusName);
-bookingRouter.get("/getBookingRecordByUserId/:userId", getBookingRecordByUserId);
-bookingRouter.get("/getBookingRecordById/:bookingId",getBookingRecordById);
-bookingRouter.delete("/deleteBookingRecordByBookingId/:bookingId",deleteBookingRecordByBookingId);
-
-
-
-
-export default bookingRouter;
+const router = express.Router();
+router.post("/addBookingRecord", authenticate, asyncHandler(addBookingRecord));
+router.get("/getBookingRecordById/:bookingId", authenticate, asyncHandler(getBookingRecordById));
+router.get("/getBookingRecordByBusId/:busId", authenticate, requireRole("ADMIN", "OPERATOR"), asyncHandler(getBookingRecordByBusId));
+router.get("/getBookingRecordByBusName/:busName", authenticate, requireRole("ADMIN", "OPERATOR"), asyncHandler(getBookingRecordByBusName));
+router.get("/getBookingRecordByUserId/:userId", authenticate, asyncHandler(getBookingRecordByUserId));
+router.get("/getAllBookingRecord", authenticate, requireRole("ADMIN", "OPERATOR"), asyncHandler(getAllBookingRecord));
+router.delete("/deleteBookingRecordByBookingId/:bookingId", authenticate, asyncHandler(deleteBookingRecordByBookingId));
+export default router;
