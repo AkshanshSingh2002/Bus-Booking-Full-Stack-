@@ -3,6 +3,9 @@ import Seat from "./seat.js";
 import User from "./user.js";
 import Role from "./role.js";
 import BookingRecord from "./seatBooking.js";
+import Payment from "./payment.js";
+import Refund from "./refund.js";
+import OutboxEvent from "./outboxEvent.js";
 
 /* ==========================
    Bus <-> Seat
@@ -68,6 +71,13 @@ BookingRecord.belongsTo(Seat, {
     as: "seat"
 });
 
+
+Booking.hasOne(Payment, { foreignKey: "bookingId", as: "payment", onDelete: "CASCADE" });
+Payment.belongsTo(Booking, { foreignKey: "bookingId", as: "booking" });
+
+Booking.hasMany(Refund, { foreignKey: "bookingId", as: "refunds" });
+Refund.belongsTo(Booking, { foreignKey: "bookingId", as: "booking" });
+
 /* ==========================
    User <-> Role (Many-to-Many)
 ========================== */
@@ -91,5 +101,8 @@ export {
     Seat,
     User,
     Role,
-    BookingRecord
+    BookingRecord,
+    Payment, 
+    Refund, 
+    OutboxEvent 
 };

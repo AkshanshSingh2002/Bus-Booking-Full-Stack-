@@ -1,4 +1,4 @@
-import { BIGINT, DataTypes } from "sequelize";
+import { DataTypes } from "sequelize";
 import sequelize from "../config/database.js";
 
 const Bus = sequelize.define("Bus",
